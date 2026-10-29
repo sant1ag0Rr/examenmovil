@@ -1,10 +1,35 @@
-/// Punto de inicio para la persistencia local del examen.
-///
-/// La shell no incluye Drift como dependencia. Este archivo compila sin Drift
-/// para que la aplicacion inicial pueda ejecutarse. Durante el examen se debe
-/// transformar esta clase en la base de datos requerida por el enunciado.
-class AppDatabase {
-  // TODO: agregar la configuracion de persistencia local requerida.
-  // TODO: crear e incluir la estructura solicitada por el enunciado.
-  // TODO: implementar las operaciones locales necesarias.
+import 'dart:io';
+
+import 'package:drift/drift.dart';
+import 'package:drift/native.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+
+part 'app_database.g.dart';
+
+@DataClassName('SampleEventRow')
+class SampleEvents extends Table {
+  TextColumn get id => text()();
+  TextColumn get sampleId => text()();
+  TextColumn get type => text()();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+@DriftDatabase(tables: [SampleEvents])
+class AppDatabase extends _$AppDatabase {
+  AppDatabase([QueryExecutor? e]) : super(e ?? _openConnection());
+
+  @override
+  int get schemaVersion => 1;
+
+  static LazyDatabase _openConnection() {
+    return LazyDatabase(() async {
+      final dbFolder = await getApplicationDocumentsDirectory();
+      final file = File(p.join(dbFolder.path, 'sampletrack.sqlite'));
+      return NativeDatabase.createInBackground(file);
+    });
+  }
 }
